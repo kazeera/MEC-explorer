@@ -25,16 +25,17 @@ all_pals <- rownames(RColorBrewer::brewer.pal.info)
 # Define UI ----
 ui <- fluidPage(
   # App title ----
-  titlePanel(title = "Heatmap Explorer"),
+  titlePanel(title = "MEC Explorer"),
   
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
-    # helpText("Query human mammary epithelial cell proteome first published in Mahendralingam et al., Nature Metabolism, 2021."),
     # Sidebar panel for inputs ----
     sidebarPanel( 
       # CSS
       id="tPanel", 
       style="overflow-y:scroll; max-height:600px; position=absolute",
+      
+      helpText("Query human mammary epithelial cell (MEC) proteome (first published in Mahendralingam et al., Nature Metabolism, 2021)"),
       textInput("file_label", h4("Title for Plot:"),  value = ""),
       
       # Process data
@@ -42,11 +43,11 @@ ui <- fluidPage(
       textInput("ss_row_list",  h5("Input list here:"), value = "CD14 KRT18 KRT19 EGFR EPCAM VIM FOXA1 LTF GATA3 TP63 ITGA6 FOLR1"),
       textInput("ss_row_delim", h6("Delimited by:"), value = " "),
       
-      h3("Perform data transformations:"),
-      checkboxGroupInput("transf_checkbox", label = "", choices = list("z-score (row)" = "z_row"), selected = 0),
+      h4("Data Transformations"),
+      checkboxGroupInput("transf_checkbox", label = "", choices = list("z-score (row)" = "z_row", "z-score (column)" = "z_column"), selected = 0),
       
       # Heatmap visualization options
-      h3("Heatmap Preferences"),
+      h4("Heatmap Preferences"),
       # Scaling
       selectInput("hm_scale", label = "Scale by: ", choices = c("Row", "Column", "None"), selected = "Row"),
       # Clustering/showing name
