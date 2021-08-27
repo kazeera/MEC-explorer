@@ -1,0 +1,13 @@
+name: MEC-explorer
+title: MEC-explorer
+username:
+account: kazeera
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4524318
+bundleId: 4953966
+url: https://kazeera.shinyapps.io/MEC-explorer/
+when: 1629729800.7278
+lastSyncTime: 1629729800.7278
+asMultiple: FALSE
+asStatic: FALSE
