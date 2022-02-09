@@ -3,7 +3,7 @@ Interactive heatmap explorer to query [Khokha Lab](https://khokhalab.ca/)'s "nor
 
 Read full journal article [here](https://www.nature.com/articles/s42255-021-00388-6) (Mahendralingam et al, 2021, *Nature Metabolism*).
 
-![](https://github.com/kazeera/MEC-explorer/blob/master/explorer_preview.JPG?raw=true)
+![](images/explorer_preview.JPG?raw=true)
 
 ### How to Access 
 [Click this link.](https://kazeera.shinyapps.io/MEC-explorer/)
