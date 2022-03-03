@@ -16,8 +16,9 @@ Note: The application may take 10 - 30 seconds to load.
 ![](images/preview_scRNA.JPG?raw=true)
 
 ### How to Use
-* Copy and paste list of gene names (all uppercase letters) into Input List.
-* Delimiter is the character gene names are seperated by in list. Default is single space i.e. " "
+* Search for genes and press enter in text input boxes.
+* Customize plots with user options in left side panel. 
+* View plots in right panel.
 * Download plot and/or data.
 
 ![](https://github.com/kazeera/MEC-explorer/blob/master/something.JPG?raw=true)
