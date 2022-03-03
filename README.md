@@ -12,13 +12,13 @@ https://kazeera.shinyapps.io/MEC-explorer/
 ```
 Note: The application may take 10 - 30 seconds to load.
 
-![](images/preview_human_proteome.JPG?raw=true)
-![](images/preview_scRNA.JPG?raw=true)
-
 ### How to Use
 * Search for genes and press enter in text input boxes.
 * Customize plots with user options in left side panel. 
 * View plots in right panel.
 * Download plot and/or data.
 
+### Preview
+![](images/preview_human_proteome.JPG?raw=true)
+![](images/preview_scRNA.JPG?raw=true)
 ![](https://github.com/kazeera/MEC-explorer/blob/master/something.JPG?raw=true)
