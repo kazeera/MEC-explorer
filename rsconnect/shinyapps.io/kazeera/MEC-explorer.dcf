@@ -5,10 +5,10 @@ account: kazeera
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4524318
-bundleId: 5640454
+bundleId: 5640469
 url: https://kazeera.shinyapps.io/MEC-explorer/
-when: 1646369118.45678
-lastSyncTime: 1646369118.45678
+when: 1646369681.67646
+lastSyncTime: 1646369681.67646
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: .gitattributes|data/sc_Seurat_object.rds|data/spinner.gif|images/preview_human_proteome.JPG|images/preview_scRNA.JPG|README.md

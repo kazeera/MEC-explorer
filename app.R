@@ -7,27 +7,25 @@ library(ggplot2)
 library(Seurat)
 library(viridis) #color palettes
 library(cowplot) #plot_grid
-library(Nebulosa)
+
 #' Acronyms:
 #' hm = heatmap
 #' ss = subset
-#' ann = annotation
-# e.g https://shiny.igmm.ed.ac.uk/livercellatlas/
+#' sc = single cell
+
 # Load helper functions
 lapply(list.files(pattern = "helpers"), source)
 
 # Import proteome data
 hprot_data <- readRDS("data/human_proteome.rds")
 
-# Import single cell data
-# cell_colors <- readRDS("data/CellType_colors.rds")
-# sc_data <- readRDS("data/Seurat_MEC_object.rds")
-
-# Accessible colors for single cell plots
-# https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
-sc_colors  <- list(Gray="#EDEDED", Black="#000000", Orange="#E69F00", SkyBlue="#56B4E9", Green="#009E73", 
-                   Yellow="#F0E442", Blue="#0072sc_data", Vermillion="#D55E00", Pink="#CC79A7")
+# # Accessible colors for single cell plots
+# # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
+# sc_colors  <- list(Gray="#EDEDED", Black="#000000", Orange="#E69F00", SkyBlue="#56B4E9", Green="#009E73", 
+#                    Yellow="#F0E442", Blue="#0072sc_data", Vermillion="#D55E00", Pink="#CC79A7")
 # scales::show_col(unlist(color_blind_pal))
+
+# Heatmap color palettes
 hm_colors <- rownames(RColorBrewer::brewer.pal.info)
 
 # Color palettes
