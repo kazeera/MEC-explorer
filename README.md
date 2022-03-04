@@ -19,7 +19,5 @@ Note: The application may take 10 - 30 seconds to load.
 * Download plot and/or data.
 
 ### Preview
-![](images/preview_human_proteome.JPG?raw=true)
-![](images/preview_scRNA.JPG?raw=true)
 
 ![](https://github.com/kazeera/MEC-explorer/blob/master/something.JPG?raw=true)
