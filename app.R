@@ -7,11 +7,12 @@ library(ggplot2)
 library(Seurat)
 library(viridis) #color palettes
 library(cowplot) #plot_grid
+library(Nebulosa)
 #' Acronyms:
 #' hm = heatmap
 #' ss = subset
 #' ann = annotation
-
+# e.g https://shiny.igmm.ed.ac.uk/livercellatlas/
 # Load helper functions
 lapply(list.files(pattern = "helpers"), source)
 
@@ -19,7 +20,7 @@ lapply(list.files(pattern = "helpers"), source)
 hprot_data <- readRDS("data/human_proteome.rds")
 
 # Import single cell data
-cell_colors <- readRDS("data/CellType_colors.rds")
+# cell_colors <- readRDS("data/CellType_colors.rds")
 # sc_data <- readRDS("data/Seurat_MEC_object.rds")
 
 # Accessible colors for single cell plots
@@ -42,16 +43,17 @@ ui <- navbarPage("Khokha Lab MEC Explorer",
                               id="scPanel", 
                               style="overflow-y:scroll; max-height:800px; position=absolute",
                               
+                              # Make text input for user to define title of plot
                               helpText("Query human mammary epithelial cell (MEC) proteome (first published in Mahendralingam et al., Nature Metabolism, 2021)"),
                               textInput("file_label", h4("Title for Plot:"),  value = ""),
                               
-                              # Make drop down menu with all gene names in single cell object
-                              selectizeInput("hm_geneIDs", multiple = T, label = h4('Select proteins of interest'), choices = NULL, options = list(create = FALSE)),
+                              # Make drop down menu with all gene symbols in proteome
+                              selectizeInput("hm_geneIDs", multiple = T, label =  h4('Select proteins of interest'), choices = NULL, options = list(create = FALSE)),
                               
                               h4("Data Transformations"),
+                              # z-score
                               checkboxGroupInput("transf_checkbox", label = "", choices = list("z-score (row)" = "z_row", "z-score (column)" = "z_column"), selected = 0),
                               
-                              # Heatmap visualization options
                               h4("Heatmap Preferences"),
                               # Scaling
                               selectInput("hm_scale", label = "Scale by: ", choices = c("Row", "Column", "None"), selected = "Row"),
@@ -59,15 +61,15 @@ ui <- navbarPage("Khokha Lab MEC Explorer",
                               checkboxGroupInput("hm_row", label = "Rows", choices = list("cluster" = "cluster", "show_name" = "show_name"), selected = c("show_name", "cluster")),
                               checkboxGroupInput("hm_column", label = "Columns", choices = list("cluster" = "cluster", "show_name" = "show_name"), selected = 0),
                               # Cell size
-                              numericInput("hm_cell_h", h6("Cell height"), value = "", width = 100),
-                              numericInput("hm_cell_w", h6("Cell width"), value = "", width = 100),
+                              numericInput("hm_cell_h", "Cell height", value = "", width = 100),
+                              numericInput("hm_cell_w", "Cell width", value = "", width = 100),
                               
                               # Gradient color picker
                               selectInput("hm_color_pal", label = "Pick heatmap color", choices = hm_colors, selected = hm_colors[3]),
                               radioButtons("hm_color_rev", label = "Reverse palette?",  choices = c("No", "Yes"), selected = "No"),
                               
                               # Save Plot
-                              selectInput("file_format", label = "Save plot as", choices = c("png", "jpeg", "pdf", "svg", "tiff"), selected = "png"),
+                              selectInput("file_format", label = h4("Save plot as"), choices = c("png", "jpeg", "pdf", "svg", "tiff"), selected = "png"),
                               downloadButton('downloadPlot', 'Download Plot'),
                               
                               # helpText("Data source: Human mammary epithelial cell proteome"),
@@ -92,27 +94,33 @@ ui <- navbarPage("Khokha Lab MEC Explorer",
                               helpText("Query human mammary epithelial cell (MEC) single cell RNA seq data (first published in Mahendralingam et al., Nature Metabolism, 2021)"),
                               
                               # Make drop down menu with discrete meta data variables
-                              selectInput("sc_group.by", label = h5("Select Annotation"), selected = "CellType", choices = c("CellType","CellStates","Seurat_clusters","Seurat_cellCyclePhase","Source","Patient")),# colnames(sc_data@meta.data)),
+                              selectInput("sc_group.by", label = h5("Group By"), selected = "CellType", choices = c("CellType","CellStates","Seurat_clusters","Seurat_cellCyclePhase","Source","Patient")),# colnames(sc_data@meta.data)),
                               
                               # Make drop down menu with all gene names in single cell object
                               selectizeInput("sc_geneIDs", multiple = T, label = h5('Select genes'), choices = NULL, options = list(create = FALSE)), # if TRUE, allows newly created inputs),
                               
                               # Point size
-                              numericInput("sc_pt.size", h6("Point Size"), value = "0.1", min = 0.0001, max=10, step = 0.1, width = 100),
+                              numericInput("sc_pt.size", h5("Point Size"), value = "0.1", min = 0.0001, max=10, step = 0.1, width = 100),
                               
                               # # Gradient color picker
                               # selectInput("sc_color_low", label = "Select color (low)", choices = names(sc_colors), selected = "Gray"),
                               # selectInput("sc_color_high", label = "Select color (high)", choices = names(sc_colors), selected = "Vermillion"),
                               
                               # Save Plot
-                              selectInput("file_format_sc", label = "Save plot as", choices = c("png", "jpeg", "pdf", "svg", "tiff"), selected = "png"),
-                              downloadButton('downloadPlot_sc', 'Download Plots'),
+                              selectInput("file_format_sc", label = h5("Save plots as"), choices = c("png", "jpeg", "svg", "pdf", "tiff"), selected = ""),
+                              downloadButton(outputId = 'downloadPlot_sc', label = 'Download Plots'),
                             ),
                             
                             # Main panel for displaying outputs ----
                             mainPanel(
-                              plotOutput(outputId = "sc") # sc = single cell plot
-                            )))
+                              # tabsetPanel(
+                              #   tabPanel("Groups", plotOutput(outputId = "sc", height = "700px")), 
+                              #   tabPanel("Feature Plots", plotOutput(outputId = "sc_umaps", height = "500px")), 
+                              #   tabPanel("Density Plots", plotOutput(outputId = "sc_dens", height = "500px"))
+                              # )
+                              plotOutput(outputId = "sc", height = "800px") # sc = single cell plot
+                            )
+                          ))
 )
 
 
@@ -127,13 +135,15 @@ server <- function(input, output, session) {
   
   # Process data
   df_mat_s <- reactive({
+    # if(length(input$hm_geneIDs) == 0)
+    #   return(hprot_data$mat)
     df_s <-
       get_to_keep(rownames(hprot_data$mat), list_to_match = input$hm_geneIDs) %>%
       subset_table(hprot_data$mat, rows=.)
+    
     # Transform data
     if(is.null(input$transf_checkbox))
       return(df_s)
-    # print(input$transf_checkbox)
     transform_data(df_s, input$transf_checkbox)
   })
   
@@ -198,43 +208,60 @@ server <- function(input, output, session) {
   )
   
   ## scRNA ----------------------------------------
-  sc_data <- readRDS("data/sc_Seurat_object.rds")
+  # Load data
+  sc_data <- readRDS("data/sc_DietSeurat.rds")
   
   # For drop down menu with gene names, update and filter server-side to speed up program
   updateSelectizeInput(session, 'sc_geneIDs', choices = rownames(sc_data), selected = c("KRT18","VIM"), server = TRUE)
-  
+
   # Umap for annotations
   umap1 <- reactive({
-    DimPlot(sc_data, pt.size = input$sc_pt.size, cols= turbo(length(unique(unlist(sc_data[[input$sc_group.by]])))), group.by = input$sc_group.by)
+    DimPlot(sc_data, pt.size = input$sc_pt.size, reduction = "umapharmony", cols= turbo(length(unique(unlist(sc_data[[input$sc_group.by]])))), group.by = input$sc_group.by)
   })
-  
+
   # Umap for features
   umap2 <- reactive({
-    FeaturePlot(sc_data, features = input$sc_geneIDs, pt.size = input$sc_pt.size, reduction = "umapharmony", cols = viridis(3)) #c(sc_colors[[input$sc_color_low]], sc_colors[[input$sc_color_high]]),
+    FeaturePlot(sc_data, features = input$sc_geneIDs, pt.size = input$sc_pt.size, reduction = "umapharmony", 
+                cols = viridis(3))#, ncol = ifelse(length(input$sc_geneIDs) < 3, 2, 3)) #ifelse((length(input$sc_geneIDs)/4)<=1, length(input$sc_geneIDs), length(input$sc_geneIDs)/2))#c(sc_colors[[input$sc_color_low]], sc_colors[[input$sc_color_high]]),
   })
-  
+
   # Stacked violin plot for features
   vln <- reactive({
     VlnPlot(sc_data, features = input$sc_geneIDs, stack = T, group.by = input$sc_group.by)
   })
-  
-  # Heatmap for features
-  sc_hm <- reactive({
-    DoHeatmap(sc_data, features = input$sc_geneIDs, group.colors = turbo(length(unique(unlist(sc_data[[input$sc_group.by]])))), group.by = input$sc_group.by) + 
-      viridis::scale_fill_viridis() + 
-      theme(axis.text.y = element_text(face="bold",size=15, color = "black"))# + guides(fill="none") # removes color bar
-  })
+
+  # # Density plots from Nebulosa package
+  # dens <- reactive({
+  #   plot_density(sc_data, features = input$sc_geneIDs)
+  # })
+  # # Heatmap for features - need scale data
+  # sc_hm <- reactive({
+  #   DoHeatmap(sc_data, features = input$sc_geneIDs, group.colors = turbo(length(unique(unlist(sc_data[[input$sc_group.by]])))), group.by = input$sc_group.by) +
+  #     viridis::scale_fill_viridis() +
+  #     theme(axis.text.y = element_text(face="bold",size=15, color = "black"))# + guides(fill="none") # removes color bar
+  # })
+  # # Render output
+  # output$sc <- renderPlot({
+  #   plot_grid(umap1(), vln(), ncol=1) 
+  # })
+  # output$sc_umaps <- renderPlot({
+  #   umap2()#plot_grid(umap2(), vln(), ncol=1) 
+  # })
+  # output$sc_dens <- renderPlot({
+  #   dens()
+  # })
   
   # Render output
   output$sc <- renderPlot({
-    cowplot::plot_grid(umap1(), vln(), umap2(), sc_hm())
+    plot_grid(plot_grid(umap1(), vln(), ncol=2), umap2(), ncol=1)#, sc_hm())
   })
   
   # Download plot
   output$downloadPlot_sc <- downloadHandler(
     filename = function() { paste0('MEC_single_cell.', input$file_format_sc)},
-    content = function(filename) {
-      ggsave(filename, plot = plot_grid(umap1(), vln(), umap2(), sc_hm()), device = input$file_format_sc)#,  width = units(8.5, "in"), height = units(5, "in"), device = input$file_format_sc)
+    content = function(file) {
+      # ggsave(filename, plot = plot_grid(umap1(), vln(), umap2(), sc_hm()), device = input$file_format_sc)#,  width = units(8.5, "in"), height = units(5, "in"), device = input$file_format_sc)
+      ggsave(file, plot = plot_grid(plot_grid(umap1(), vln(), ncol=2), umap2(), ncol=1), device = input$file_format_sc, height = 10, width = 10, units = "in")
     }
   )
 }
