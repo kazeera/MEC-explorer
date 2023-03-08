@@ -4,18 +4,16 @@ library(RColorBrewer)
 library(pheatmap)
 library(dplyr)
 library(ggplot2)
-library(Seurat)
-library(viridis) #color palettes
-library(cowplot) #plot_grid
-library(Hmisc)
 
 # Load helper functions
 lapply(list.files(pattern = "helpers"), source)
 # c("CD14","KRT18","KRT19","EGFR","EPCAM","VIM","FOXA1","LTF","GATA3","TP63","ITGA6","FOLR1")
 # Import proteome data
 allData <- list(
-  "Human Proteome" = readRDS("data/human_proteome.rds"),
-  "Mouse Proteome" = readRDS("data/mouse_proteome.rds")
+  "Human Proteome" = readRDS("data/Mahendralingam2021_human_proteome.rds"),
+  "Mouse Proteome" = readRDS("data/Casey2018_mouse_proteome.rds"),
+  "Mouse Microarray" = readRDS("data/Shiah2015_mouse_microarray.rds"),
+  "Mouse Proteome (Pilot)" = readRDS("data/Casey_mouse_pilotproteome.rds")
 )
 
 # Heatmap color palettes
@@ -35,7 +33,7 @@ ui <- navbarPage("Khokha Lab MEC Explorer",
                               style="overflow-y:scroll; max-height:800px; position=absolute",
                               
                               # Scaling
-                              selectInput("species", label = "Select dataset", choices = c("Human Proteome","Mouse Proteome"), selected = "Human Proteome"),
+                              selectInput("species", label = "Select dataset", choices = names(allData), selected = names(allData)[4]),
                               
                               # Title for plot
                               textInput("file_label", h4("Title for Plot:"),  value = ""),
@@ -72,7 +70,7 @@ ui <- navbarPage("Khokha Lab MEC Explorer",
                               plotOutput(outputId = "heatmap")
                             ))),
                  
-                 # Tab 1
+                 # Tab 2
                  tabPanel("Single-cell data",
                           
                           uiOutput("sc_Shiny")
